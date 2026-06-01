@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>방명록</title>
+  <style>
+    @font-face {
+      font-family: 'OngleipParkDahyeon';
+      src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/2411-3@1.0/Ownglyph_ParkDaHyun.woff2') format('woff2');
+      font-weight: normal;
+      font-display: swap;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #fffbe6;
+      color: #5c3d1e;
+      font-family: 'OngleipParkDahyeon', 'Malgun Gothic', sans-serif;
+      font-size: 14px;
+      padding: 40px 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 30px;
+    }
+
+    h1 {
+      font-size: 28px;
+      font-weight: bold;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+    }
+
+    .title-cat { font-size: 18px; }
+
+    h2 {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 12px;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+    }
+
+    .open-write-btn {
+      margin-bottom: 24px;
+      padding: 8px 28px;
+      background: #b07d3a;
+      color: #fffbe6;
+      border: none;
+      font-size: 15px;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+      cursor: pointer;
+      width: 100%;
+      max-width: 700px;
+    }
+    .open-write-btn:hover { background: #8a5e25; }
+
+    /* 작성 폼 래퍼 (귀 달기용) */
+    .write-wrapper {
+      position: relative;
+      padding-top: 18px;
+      margin-bottom: 30px;
+      width: 100%;
+      max-width: 700px;
+      display: none;
+    }
+    .write-wrapper.open { display: block; }
+
+    .write-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 0; height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 18px solid #b07d3a;
+    }
+    .write-wrapper::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0;
+      width: 0; height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 18px solid #b07d3a;
+    }
+
+    /* 작성 폼 */
+    .write-section {
+      border: 1px solid #b07d3a;
+      padding: 20px;
+      width: 100%;
+      background: #fff9d6;
+    }
+
+    .form-row { display: flex; align-items: center; margin-bottom: 10px; }
+    .form-row label {
+      width: 80px;
+      flex-shrink: 0;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+      color: #5c3d1e;
+    }
+    .form-row input,
+    .form-row textarea {
+      flex: 1;
+      border: 1px solid #b07d3a;
+      padding: 5px 8px;
+      font-size: 14px;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+      background: #fffdf0;
+      color: #5c3d1e;
+    }
+    .form-row textarea { height: 80px; resize: vertical; }
+    .form-row input:focus,
+    .form-row textarea:focus { outline: 2px solid #b07d3a; }
+    .form-row input::placeholder,
+    .form-row textarea::placeholder { color: #c4a882; }
+
+    .form-btns { display: flex; gap: 8px; margin-top: 6px; }
+
+    .submit-btn {
+      padding: 6px 20px;
+      background: #b07d3a;
+      color: #fffbe6;
+      border: none;
+      font-size: 14px;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+      cursor: pointer;
+    }
+    .submit-btn:hover { background: #8a5e25; }
+
+    .cancel-btn {
+      padding: 6px 20px;
+      background: #fffdf0;
+      color: #5c3d1e;
+      border: 1px solid #b07d3a;
+      font-size: 14px;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+      cursor: pointer;
+    }
+    .cancel-btn:hover { background: #f0e0b0; }
+
+    /* 목록 섹션 */
+    .list-section {
+      width: 100%;
+      max-width: 700px;
+    }
+
+    /* 그리드 */
+    .post-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 28px 16px;
+    }
+
+    /* 고양이 귀 박스 래퍼 */
+    .post-wrapper {
+      position: relative;
+      padding-top: 18px; /* 귀 높이만큼 여백 */
+    }
+
+    /* 왼쪽 귀 */
+    .post-wrapper::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 18px solid #b07d3a;
+    }
+
+    /* 오른쪽 귀 */
+    .post-wrapper::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 0;
+      height: 0;
+      border-left: 18px solid transparent;
+      border-right: 18px solid transparent;
+      border-bottom: 18px solid #b07d3a;
+    }
+
+    /* 귀 안쪽 색 (왼쪽) */
+    .post-wrapper .ear-left {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 15px solid #fff9d6;
+      z-index: 1;
+    }
+
+    /* 귀 안쪽 색 (오른쪽) */
+    .post-wrapper .ear-right {
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 0;
+      height: 0;
+      border-left: 15px solid transparent;
+      border-right: 15px solid transparent;
+      border-bottom: 15px solid #fff9d6;
+      z-index: 1;
+    }
+
+    .post-item {
+      border: 1px solid #b07d3a;
+      padding: 12px 12px 12px 12px;
+      background: #fff9d6;
+      height: 100%;
+    }
+
+    .post-cat {
+      font-size: 16px;
+      font-weight: bold;
+      display: block;
+      margin-bottom: 5px;
+    }
+
+    .post-title {
+      font-weight: bold;
+      font-size: 14px;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+      color: #5c3d1e;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    .post-meta {
+      font-size: 11px;
+      color: #9a7040;
+      margin-bottom: 6px;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+    }
+
+    .post-content {
+      font-size: 13px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+      word-break: break-all;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+      color: #5c3d1e;
+      margin-bottom: 8px;
+    }
+
+    .delete-area { display: flex; gap: 4px; margin-top: 8px; }
+
+    .delete-area input {
+      border: 1px solid #b07d3a;
+      padding: 3px 6px;
+      font-size: 12px;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+      width: 100%;
+      flex: 1;
+      background: #fffdf0;
+      color: #5c3d1e;
+      min-width: 0;
+    }
+    .delete-area input::placeholder { color: #c4a882; }
+    .delete-area input:focus { outline: 2px solid #b07d3a; }
+
+    .delete-btn {
+      padding: 3px 10px;
+      background: #fffdf0;
+      color: #5c3d1e;
+      border: 1px solid #b07d3a;
+      font-size: 12px;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+    .delete-btn:hover { background: #b07d3a; color: #fffbe6; }
+
+    .empty-msg { color: #9a7040; font-family: 'OngleipParkDahyeon', sans-serif; }
+
+    .error-msg {
+      color: #c0392b;
+      font-size: 11px;
+      margin-top: 3px;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+    }
+
+    #status-msg {
+      margin-bottom: 10px;
+      font-size: 13px;
+      font-family: 'OngleipParkDahyeon', sans-serif;
+      color: #9a7040;
+    }
+
+    @media (max-width: 600px) {
+      .post-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 380px) {
+      .post-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="title-row">
+    <span class="title-cat">ฅ^•ﻌ•^ฅ</span>
+    <h1>방명록</h1>
+    <span class="title-cat">ฅ^•ﻌ•^ฅ</span>
+  </div>
+
+  <button class="open-write-btn" onclick="toggleWrite()">✏️ 방명록 작성하기</button>
+
+  <div class="write-wrapper" id="write-section">
+    <div class="ear-left"></div>
+    <div class="ear-right"></div>
+    <section class="write-section">
+      <h2>방명록 작성</h2>
+      <div class="form-row">
+        <label for="inp-title">제목</label>
+        <input type="text" id="inp-title" placeholder="제목을 입력하세요" />
+      </div>
+      <div class="form-row">
+        <label for="inp-writer">작성자</label>
+        <input type="text" id="inp-writer" placeholder="이름을 입력하세요" />
+      </div>
+      <div class="form-row">
+        <label for="inp-content">내용</label>
+        <textarea id="inp-content" placeholder="내용을 입력하세요"></textarea>
+      </div>
+      <div class="form-row">
+        <label for="inp-password">비밀번호</label>
+        <input type="password" id="inp-password" placeholder="삭제 시 사용할 비밀번호" />
+      </div>
+      <div class="form-btns">
+        <button class="submit-btn" onclick="submitPost()">작성 완료</button>
+        <button class="cancel-btn" onclick="toggleWrite()">취소</button>
+      </div>
+      <div id="write-error" class="error-msg"></div>
+    </section>
+  </div>
+
+  <section class="list-section">
+    <h2>전체 방명록</h2>
+    <div id="status-msg"></div>
+    <div class="post-grid" id="post-list"></div>
+  </section>
+
+  <script>
+    const BASE_URL = 'http://3.37.183.37:8000/guestbook/';
+
+    const CATS = [
+      'ฅ^•ﻌ•^ฅ','ฅˆ‧⩊‧ˆฅ','˓˓ก₍⸍⸌̣ʷ̣̫⸍̣⸌₎ค˒˒','(=ˆ ･ ˆ=)',
+      '(=🝦 ༝ 🝦=)','(ฅ^･ω･^ ฅ)','(ﾉΦωΦ)ﾉ','(=ↀωↀ=)',
+      '=＾● ⋏ ●＾=','(.=^・ェ・^=)','( ˆ ̳◝ ·̫ ◜ ̳ˆ )','(ﾐ ᵕ̣̣̣̣̣̣ ﻌ ᵕ̣̣̣̣̣̣ ﾐ)ﾉ',
+      '/ᐠᵕ̩̩̥ ‸ᵕ̩̩̥ ᐟﾉ','[^._.^]ﾉ彡','/ᐠ - ˕ -マ Ⳋ','ฅ ̳͒•ˑ̫• ̳͒ฅ♡',
+      '=^._.^= ∫','(ﾐ•̀ᆽ•̀ﾐ)','^ ̳. ̫ . ̳^','≽ܫ≼',
+      'ꐑ՞•ﻌ•՞ꐑ','(₌ ᵕ̣̣̣̣̣ ᆽ ᵕ̣̣̣̣̣₌)','(=🝦 ﻌ 🝦=)','ଲ(ⓛ ω ⓛ)ଲ',
+      '(ﾐ ᵕ̣̣̣̣̣̣ ﻌ ᵕ̣̣̣̣̣̣ ﾐ)','(ﾐటᆽటﾐ)','₍˄·͈༝·͈˄₎◞','ෆ₍˄·͈༝·͈˄₎ฅ˒',
+      '(ृ˄·͈༝·͈˄ ृ )','˓ฅ₍ᵔ·͈༝·͈ᵔ₎ฅ˒',
+    ];
+
+    const CAT_COLORS = [
+      '#e05c5c','#d4820a','#c4a800','#5aaa5a','#3a9fbf',
+      '#9b6abf','#d45c8a','#4db8a0','#e07840','#7a9e3b',
+    ];
+
+    function seededIndex(id, length) {
+      let h = id * 2654435761;
+      h = h ^ (h >>> 16);
+      return Math.abs(h) % length;
+    }
+
+    function getCatForPost(id) {
+      return {
+        text: CATS[seededIndex(id, CATS.length)],
+        color: CAT_COLORS[seededIndex(id * 31 + 7, CAT_COLORS.length)],
+      };
+    }
+
+    function toggleWrite() {
+      const wrapper = document.getElementById('write-section');
+      const btn = document.querySelector('.open-write-btn');
+      wrapper.classList.toggle('open');
+      btn.textContent = wrapper.classList.contains('open') ? '✏️ 작성 닫기' : '✏️ 방명록 작성하기';
+      if (!wrapper.classList.contains('open')) document.getElementById('write-error').textContent = '';
+    }
+
+    function formatDate(dateStr) {
+      const d = new Date(dateStr);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+    }
+
+    async function loadPosts() {
+      const statusEl = document.getElementById('status-msg');
+      const listEl = document.getElementById('post-list');
+      statusEl.textContent = '불러오는 중...';
+      listEl.innerHTML = '';
+
+      try {
+        const res = await fetch(BASE_URL);
+        if (!res.ok) throw new Error();
+        const posts = await res.json();
+        statusEl.textContent = '';
+        if (posts.length === 0) {
+          listEl.innerHTML = '<p class="empty-msg">아직 작성된 방명록이 없습니다. ≽^•⩊•^≼</p>';
+          return;
+        }
+        posts.forEach(post => listEl.appendChild(createPostElement(post)));
+      } catch {
+        statusEl.textContent = '목록을 불러오지 못했습니다.';
+      }
+    }
+
+    function createPostElement(post) {
+      const wrapper = document.createElement('div');
+      wrapper.className = 'post-wrapper';
+      wrapper.id = 'post-' + post.id;
+
+      const { text: catText, color: catColor } = getCatForPost(post.id);
+
+      // 귀 안쪽 삼각형 (테두리 색과 배경색으로 입체감)
+      wrapper.innerHTML = `
+        <div class="ear-left"></div>
+        <div class="ear-right"></div>
+        <div class="post-item">
+          <span class="post-cat" style="color:${catColor};">${catText}</span>
+          <span class="post-title">${escapeHtml(post.title)}</span>
+          <div class="post-meta">${escapeHtml(post.writer)} · ${formatDate(post.created_at)}</div>
+          <div class="post-content">${escapeHtml(post.content)}</div>
+          <div class="delete-area">
+            <input type="password" id="pw-${post.id}" placeholder="비밀번호" />
+            <button class="delete-btn" onclick="deletePost(${post.id})">삭제</button>
+          </div>
+          <div id="del-error-${post.id}" class="error-msg"></div>
+        </div>
+      `;
+      return wrapper;
+    }
+
+    async function submitPost() {
+      const title = document.getElementById('inp-title').value.trim();
+      const writer = document.getElementById('inp-writer').value.trim();
+      const content = document.getElementById('inp-content').value.trim();
+      const password = document.getElementById('inp-password').value;
+      const errorEl = document.getElementById('write-error');
+
+      if (!title || !writer || !content || !password) {
+        errorEl.textContent = '모든 항목을 입력해주세요.';
+        return;
+      }
+      errorEl.textContent = '';
+
+      try {
+        const res = await fetch(BASE_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ title, writer, content, password })
+        });
+        if (!res.ok) throw new Error();
+
+        ['inp-title','inp-writer','inp-content','inp-password'].forEach(id => document.getElementById(id).value = '');
+
+        const section = document.getElementById('write-section');
+        section.classList.remove('open');
+        document.querySelector('.open-write-btn').textContent = '✏️ 방명록 작성하기';
+        loadPosts();
+      } catch {
+        errorEl.textContent = '작성에 실패했습니다. 다시 시도해주세요.';
+      }
+    }
+
+    async function deletePost(id) {
+      const pw = document.getElementById('pw-' + id).value;
+      const errorEl = document.getElementById('del-error-' + id);
+
+      if (!pw) { errorEl.textContent = '비밀번호를 입력해주세요.'; return; }
+      errorEl.textContent = '';
+
+      try {
+        const res = await fetch(`${BASE_URL}${id}/`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pw })
+        });
+
+        if (res.status === 403 || res.status === 401) { errorEl.textContent = '비밀번호가 틀렸습니다.'; return; }
+        if (!res.ok) throw new Error();
+
+        const el = document.getElementById('post-' + id);
+        if (el) el.remove();
+
+        if (document.getElementById('post-list').children.length === 0) {
+          document.getElementById('post-list').innerHTML = '<p class="empty-msg">아직 작성된 방명록이 없습니다. ≽^•⩊•^≼</p>';
+        }
+      } catch {
+        errorEl.textContent = '삭제에 실패했습니다. 다시 시도해주세요.';
+      }
+    }
+
+    function escapeHtml(str) {
+      return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+    }
+
+    loadPosts();
+  </script>
+</body>
+</html>
